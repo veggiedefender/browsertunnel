@@ -120,7 +120,7 @@ func (tun *tunnel) listenDomains() {
 				msg, err := fragmentList.assemble()
 				if err != nil {
 					log.Println(err)
-					return
+					continue
 				}
 				tun.Messages <- msg
 				delete(tun.fragments, fragment.id)
