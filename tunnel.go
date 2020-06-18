@@ -17,6 +17,7 @@ type tunnel struct {
 	fragments map[string]*msgFragmentList
 	topDomain string
 	domains   chan string
+	cancel    chan struct{}
 }
 
 type msgFragment struct {
@@ -87,36 +88,40 @@ func (fl msgFragmentList) assemble() (string, error) {
 
 func (tun *tunnel) listenDomains() {
 	for {
-		domain := <-tun.domains
-		fragment, err := parseDomain(tun.topDomain, domain)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-
-		if _, ok := tun.fragments[fragment.id]; !ok {
-			tun.fragments[fragment.id] = &msgFragmentList{
-				totalSize: 0,
-				fragments: make(map[int]msgFragment),
-			}
-		}
-		fragmentList := tun.fragments[fragment.id]
-		fragmentList.totalSize = fragment.totalSize
-		fragmentList.fragments[fragment.offset] = fragment
-
-		totalBytes := 0
-		for _, fragment := range fragmentList.fragments {
-			totalBytes += len(fragment.data)
-		}
-
-		if totalBytes >= fragmentList.totalSize {
-			msg, err := fragmentList.assemble()
+		select {
+		case <-tun.cancel:
+			return
+		case domain := <-tun.domains:
+			fragment, err := parseDomain(tun.topDomain, domain)
 			if err != nil {
 				log.Println(err)
-				return
+				continue
 			}
-			tun.Messages <- msg
-			delete(tun.fragments, fragment.id)
+
+			if _, ok := tun.fragments[fragment.id]; !ok {
+				tun.fragments[fragment.id] = &msgFragmentList{
+					totalSize: 0,
+					fragments: make(map[int]msgFragment),
+				}
+			}
+			fragmentList := tun.fragments[fragment.id]
+			fragmentList.totalSize = fragment.totalSize
+			fragmentList.fragments[fragment.offset] = fragment
+
+			totalBytes := 0
+			for _, fragment := range fragmentList.fragments {
+				totalBytes += len(fragment.data)
+			}
+
+			if totalBytes >= fragmentList.totalSize {
+				msg, err := fragmentList.assemble()
+				if err != nil {
+					log.Println(err)
+					return
+				}
+				tun.Messages <- msg
+				delete(tun.fragments, fragment.id)
+			}
 		}
 	}
 }
