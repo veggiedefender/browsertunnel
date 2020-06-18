@@ -26,6 +26,11 @@ func TestParseDomain(t *testing.T) {
 		},
 		{
 			topDomain: "tunnel.example.com.",
+			domain:    "example.com.",
+			fails:     true,
+		},
+		{
+			topDomain: "tunnel.example.com.",
 			domain:    "2jkhm3.FAIL.0.jf2ca2ltebqxiidxn5zgwidfozsxe6lxnbsxezjmebthk3tdoruw63tjnztsa43.nn5xxi2dmpeqgc5baoruw2zltfqqgc5ban52gqzlseb2gs3lfomqgs3ramzuxi4.zamfxgiidtorqxe5dtfyqes5bamjzgkylunbsxglbanf2ca2dfmf2hglbanf2ca.zlborzs4icjoqqhg2djorzsaylomq.tunnel.example.com.",
 			fails:     true,
 		},

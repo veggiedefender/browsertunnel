@@ -44,6 +44,9 @@ func newTunnel(topDomain string) *tunnel {
 }
 
 func parseDomain(topDomain string, domain string) (msgFragment, error) {
+	if !strings.HasSuffix(domain, "."+topDomain) {
+		return msgFragment{}, fmt.Errorf("Domain %s does not have top domain %s", domain, topDomain)
+	}
 	payload := strings.TrimSuffix(domain, "."+topDomain)
 	labels := strings.Split(payload, ".")
 	if len(labels) < 4 {
