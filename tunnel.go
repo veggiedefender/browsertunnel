@@ -35,6 +35,7 @@ type msgFragmentList struct {
 func newTunnel(topDomain string) *tunnel {
 	tun := &tunnel{
 		Messages:  make(chan string, 256),
+		Cancel:    make(chan struct{}),
 		topDomain: topDomain,
 		domains:   make(chan string, 256),
 		fragments: make(map[string]*msgFragmentList),

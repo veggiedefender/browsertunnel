@@ -130,13 +130,8 @@ func TestAssemble(t *testing.T) {
 }
 
 func TestListenDomains(t *testing.T) {
-	tun := &tunnel{
-		Messages:  make(chan string, 256),
-		topDomain: "tunnel.example.com.",
-		domains:   make(chan string, 256),
-		fragments: make(map[string]*msgFragmentList),
-	}
-	go tun.listenDomains()
+	tun := newTunnel("tunnel.example.com.")
+	defer close(tun.Cancel)
 
 	tun.domains <- "i42ftq.592.0.jf2ca2ltebqxiidxn5zgwidfozsxe6lxnbsxezjmebthk3tdoruw63tjnztsa43.nn5xxi2dmpeqgc5baoruw2zltfqqgc5ban52gqzlseb2gs3lfomqgs3ramzuxi4.zamfxgiidtorqxe5dtfyqes5bamjzgkylunbsxglbanf2ca2dfmf2hglbanf2ca.zlborzs4icjoqqhg2djorzsaylomq.tunnel.example.com."
 	tun.domains <- "i42ftq.592.218.qgm5ldnnzs4icxnbqxiidbebwws43umfvwkidun4qgqylwmuqgk5tfoiqhgyljm.qqhi2dfebuwilraiv3gk4tzo5ugk4tfebuxiidjomqg2yldnbuw4zlt4kaji4tf.mfwca33omvzsyidon52caztjm52xeylunf3gkidpnzsxgoranvqwg2djnzsxgid.eojuxm2lom4qg65dimvzca3lbmn.tunnel.example.com."
