@@ -14,10 +14,10 @@ var decoder = base32.NewEncoding("abcdefghijklmnopqrstuvwxyz234567").WithPadding
 
 type tunnel struct {
 	Messages  chan string
+	Cancel    chan struct{}
 	fragments map[string]*msgFragmentList
 	topDomain string
 	domains   chan string
-	cancel    chan struct{}
 }
 
 type msgFragment struct {
@@ -92,7 +92,7 @@ func (fl msgFragmentList) assemble() (string, error) {
 func (tun *tunnel) listenDomains() {
 	for {
 		select {
-		case <-tun.cancel:
+		case <-tun.Cancel:
 			return
 		case domain := <-tun.domains:
 			fragment, err := parseDomain(tun.topDomain, domain)
