@@ -133,9 +133,12 @@ func TestListenDomains(t *testing.T) {
 	tun := newTunnel("tunnel.example.com.")
 	defer close(tun.Cancel)
 
-	tun.domains <- "i42ftq.592.0.jf2ca2ltebqxiidxn5zgwidfozsxe6lxnbsxezjmebthk3tdoruw63tjnztsa43.nn5xxi2dmpeqgc5baoruw2zltfqqgc5ban52gqzlseb2gs3lfomqgs3ramzuxi4.zamfxgiidtorqxe5dtfyqes5bamjzgkylunbsxglbanf2ca2dfmf2hglbanf2ca.zlborzs4icjoqqhg2djorzsaylomq.tunnel.example.com."
+	tun.domains <- "i42ftq.592.218.qgm5ldnnzs4icxnbqxiidbebwws43umfvwkidun4qgqylwmuqgk5tfoiqhgyljm.qqhi2dfebuwilraiv3gk4tzo5ugk4tfebuxiidjomqg2yldnbuw4zlt4kaji4tf.mfwca33omvzsyidon52caztjm52xeylunf3gkidpnzsxgoranvqwg2djnzsxgid.eojuxm2lom4qg65dimvzca3lbmn.tunnel.example.com."
 	tun.domains <- "i42ftq.592.218.qgm5ldnnzs4icxnbqxiidbebwws43umfvwkidun4qgqylwmuqgk5tfoiqhgyljm.qqhi2dfebuwilraiv3gk4tzo5ugk4tfebuxiidjomqg2yldnbuw4zlt4kaji4tf.mfwca33omvzsyidon52caztjm52xeylunf3gkidpnzsxgoranvqwg2djnzsxgid.eojuxm2lom4qg65dimvzca3lbmn.tunnel.example.com."
 	tun.domains <- "i42ftq.592.434.ugs3tfomwca3lbmnugs3tfomqgezljnztsazdsnf3gk3ramj4sa33unbsxeidnm.frwq2lomvzsyidxnf2gqidbnrwca5dimuqg4zldmvzxgylspeqgg33vobwgs3th.omqgc3teebrw63tomvrxi2lpnzzs4000.tunnel.example.com."
+	tun.domains <- "i42ftq.592.434.ugs3tfomwca3lbmnugs3tfomqgezljnztsazdsnf3gk3ramj4sa33unbsxeidnm.frwq2lomvzsyidxnf2gqidbnrwca5dimuqg4zldmvzxgylspeqgg33vobwgs3th.omqgc3teebrw63tomvrxi2lpnzzs4000.tunnel.example.com."
+	tun.domains <- "i42ftq.592.218.qgm5ldnnzs4icxnbqxiidbebwws43umfvwkidun4qgqylwmuqgk5tfoiqhgyljm.qqhi2dfebuwilraiv3gk4tzo5ugk4tfebuxiidjomqg2yldnbuw4zlt4kaji4tf.mfwca33omvzsyidon52caztjm52xeylunf3gkidpnzsxgoranvqwg2djnzsxgid.eojuxm2lom4qg65dimvzca3lbmn.tunnel.example.com."
+	tun.domains <- "i42ftq.592.0.jf2ca2ltebqxiidxn5zgwidfozsxe6lxnbsxezjmebthk3tdoruw63tjnztsa43.nn5xxi2dmpeqgc5baoruw2zltfqqgc5ban52gqzlseb2gs3lfomqgs3ramzuxi4.zamfxgiidtorqxe5dtfyqes5bamjzgkylunbsxglbanf2ca2dfmf2hglbanf2ca.zlborzs4icjoqqhg2djorzsaylomq.tunnel.example.com."
 
 	got := <-tun.Messages
 	expected := "It is at work everywhere, functioning smoothly at times, at other times in fits and starts. It breathes, it heats, it eats. It shits and fucks. What a mistake to have ever said the id. Everywhere it is machines—real ones, not figurative ones: machines driving other machines, machines being driven by other machines, with all the necessary couplings and connections."
