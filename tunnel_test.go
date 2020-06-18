@@ -11,12 +11,12 @@ func TestParseDomain(t *testing.T) {
 		topDomain string
 		domain    string
 		fails     bool
-		output    msgFragment
+		output    fragment
 	}{
 		{
 			topDomain: "tunnel.example.com.",
 			domain:    "2jkhm3.592.0.jf2ca2ltebqxiidxn5zgwidfozsxe6lxnbsxezjmebthk3tdoruw63tjnztsa43.nn5xxi2dmpeqgc5baoruw2zltfqqgc5ban52gqzlseb2gs3lfomqgs3ramzuxi4.zamfxgiidtorqxe5dtfyqes5bamjzgkylunbsxglbanf2ca2dfmf2hglbanf2ca.zlborzs4icjoqqhg2djorzsaylomq.tunnel.example.com.",
-			output: msgFragment{
+			output: fragment{
 				id:        "2jkhm3",
 				totalSize: 592,
 				offset:    0,
@@ -58,27 +58,27 @@ func TestParseDomain(t *testing.T) {
 
 func TestAssemble(t *testing.T) {
 	tests := []struct {
-		input  msgFragmentList
+		input  fragmentList
 		output string
 		fails  bool
 	}{
 		{
-			input: msgFragmentList{
+			input: fragmentList{
 				totalSize: 592,
-				fragments: map[int]msgFragment{
-					0: msgFragment{
+				fragments: map[int]fragment{
+					0: fragment{
 						id:        "2jkhm3",
 						totalSize: 592,
 						offset:    0,
 						data:      "jf2ca2ltebqxiidxn5zgwidfozsxe6lxnbsxezjmebthk3tdoruw63tjnztsa43nn5xxi2dmpeqgc5baoruw2zltfqqgc5ban52gqzlseb2gs3lfomqgs3ramzuxi4zamfxgiidtorqxe5dtfyqes5bamjzgkylunbsxglbanf2ca2dfmf2hglbanf2cazlborzs4icjoqqhg2djorzsaylomq",
 					},
-					218: msgFragment{
+					218: fragment{
 						id:        "2jkhm3",
 						totalSize: 592,
 						offset:    218,
 						data:      "qgm5ldnnzs4icxnbqxiidbebwws43umfvwkidun4qgqylwmuqgk5tfoiqhgyljmqqhi2dfebuwilraiv3gk4tzo5ugk4tfebuxiidjomqg2yldnbuw4zlt4kaji4tfmfwca33omvzsyidon52caztjm52xeylunf3gkidpnzsxgoranvqwg2djnzsxgideojuxm2lom4qg65dimvzca3lbmn",
 					},
-					434: msgFragment{
+					434: fragment{
 						id:        "2jkhm3",
 						totalSize: 592,
 						offset:    434,
@@ -90,10 +90,10 @@ func TestAssemble(t *testing.T) {
 			fails:  false,
 		},
 		{
-			input: msgFragmentList{
+			input: fragmentList{
 				totalSize: 10,
-				fragments: map[int]msgFragment{
-					30: msgFragment{
+				fragments: map[int]fragment{
+					30: fragment{
 						id:        "2jkhm3",
 						totalSize: 10,
 						offset:    30,
@@ -104,10 +104,10 @@ func TestAssemble(t *testing.T) {
 			fails: true,
 		},
 		{
-			input: msgFragmentList{
+			input: fragmentList{
 				totalSize: 10,
-				fragments: map[int]msgFragment{
-					10: msgFragment{
+				fragments: map[int]fragment{
+					10: fragment{
 						id:        "2jkhm3",
 						totalSize: 10,
 						offset:    0,

@@ -15,21 +15,21 @@ var decoder = base32.NewEncoding("abcdefghijklmnopqrstuvwxyz234567").WithPadding
 type tunnel struct {
 	Messages  chan string
 	Cancel    chan struct{}
-	fragments map[string]*msgFragmentList
+	fgLists   map[string]*fragmentList
 	topDomain string
 	domains   chan string
 }
 
-type msgFragment struct {
+type fragmentList struct {
+	totalSize int
+	fragments map[int]fragment
+}
+
+type fragment struct {
 	id        string
 	totalSize int
 	offset    int
 	data      string
-}
-
-type msgFragmentList struct {
-	totalSize int
-	fragments map[int]msgFragment
 }
 
 func newTunnel(topDomain string) *tunnel {
@@ -38,36 +38,36 @@ func newTunnel(topDomain string) *tunnel {
 		Cancel:    make(chan struct{}),
 		topDomain: topDomain,
 		domains:   make(chan string, 256),
-		fragments: make(map[string]*msgFragmentList),
+		fgLists:   make(map[string]*fragmentList),
 	}
 	go tun.listenDomains()
 	return tun
 }
 
-func parseDomain(topDomain string, domain string) (msgFragment, error) {
+func parseDomain(topDomain string, domain string) (fragment, error) {
 	if !strings.HasSuffix(domain, "."+topDomain) {
-		return msgFragment{}, fmt.Errorf("Domain %s does not have top domain %s", domain, topDomain)
+		return fragment{}, fmt.Errorf("Domain %s does not have top domain %s", domain, topDomain)
 	}
 	payload := strings.TrimSuffix(domain, "."+topDomain)
 	labels := strings.Split(payload, ".")
 	if len(labels) < 4 {
-		return msgFragment{}, fmt.Errorf("Domain has %d labels but expected at least 4", len(labels))
+		return fragment{}, fmt.Errorf("Domain has %d labels but expected at least 4", len(labels))
 	}
 	id := labels[0]
 
 	totalSize, err := strconv.Atoi(labels[1])
 	if err != nil {
-		return msgFragment{}, err
+		return fragment{}, err
 	}
 
 	offset, err := strconv.Atoi(labels[2])
 	if err != nil {
-		return msgFragment{}, err
+		return fragment{}, err
 	}
 
 	data := strings.Join(labels[3:], "")
 
-	return msgFragment{
+	return fragment{
 		id:        id,
 		totalSize: totalSize,
 		offset:    offset,
@@ -75,7 +75,7 @@ func parseDomain(topDomain string, domain string) (msgFragment, error) {
 	}, nil
 }
 
-func (fl msgFragmentList) assemble() (string, error) {
+func (fl fragmentList) assemble() (string, error) {
 	buf := make([]byte, fl.totalSize)
 	for _, f := range fl.fragments {
 		if f.offset >= fl.totalSize {
@@ -96,35 +96,35 @@ func (tun *tunnel) listenDomains() {
 		case <-tun.Cancel:
 			return
 		case domain := <-tun.domains:
-			fragment, err := parseDomain(tun.topDomain, domain)
+			fg, err := parseDomain(tun.topDomain, domain)
 			if err != nil {
 				log.Println(err)
 				continue
 			}
 
-			if _, ok := tun.fragments[fragment.id]; !ok {
-				tun.fragments[fragment.id] = &msgFragmentList{
+			if _, ok := tun.fgLists[fg.id]; !ok {
+				tun.fgLists[fg.id] = &fragmentList{
 					totalSize: 0,
-					fragments: make(map[int]msgFragment),
+					fragments: make(map[int]fragment),
 				}
 			}
-			fragmentList := tun.fragments[fragment.id]
-			fragmentList.totalSize = fragment.totalSize
-			fragmentList.fragments[fragment.offset] = fragment
+			fgList := tun.fgLists[fg.id]
+			fgList.totalSize = fg.totalSize
+			fgList.fragments[fg.offset] = fg
 
 			totalBytes := 0
-			for _, fragment := range fragmentList.fragments {
-				totalBytes += len(fragment.data)
+			for _, fg := range fgList.fragments {
+				totalBytes += len(fg.data)
 			}
 
-			if totalBytes >= fragmentList.totalSize {
-				msg, err := fragmentList.assemble()
+			if totalBytes >= fgList.totalSize {
+				msg, err := fgList.assemble()
 				if err != nil {
 					log.Println(err)
 					continue
 				}
 				tun.Messages <- msg
-				delete(tun.fragments, fragment.id)
+				delete(tun.fgLists, fg.id)
 			}
 		}
 	}
