@@ -43,7 +43,7 @@ func newTunnel(topDomain string) *tunnel {
 }
 
 func parseDomain(topDomain string, domain string) (msgFragment, error) {
-	payload := strings.TrimSuffix(domain, topDomain)
+	payload := strings.TrimSuffix(domain, "."+topDomain)
 	labels := strings.Split(payload, ".")
 	if len(labels) < 4 {
 		return msgFragment{}, fmt.Errorf("Domain has %d labels but expected at least 4", len(labels))
