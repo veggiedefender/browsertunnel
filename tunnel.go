@@ -6,6 +6,8 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/miekg/dns"
 )
@@ -13,16 +15,18 @@ import (
 var decoder = base32.NewEncoding("abcdefghijklmnopqrstuvwxyz234567").WithPadding('0')
 
 type tunnel struct {
-	Messages  chan string
-	Cancel    chan struct{}
-	fgLists   map[string]*fragmentList
-	topDomain string
-	domains   chan string
+	Messages    chan string
+	Cancel      chan struct{}
+	fgLists     map[string]*fragmentList
+	fgListsLock sync.Mutex
+	topDomain   string
+	domains     chan string
 }
 
 type fragmentList struct {
 	totalSize int
 	fragments map[int]fragment
+	expiresAt time.Time
 }
 
 type fragment struct {
@@ -41,6 +45,7 @@ func newTunnel(topDomain string) *tunnel {
 		fgLists:   make(map[string]*fragmentList),
 	}
 	go tun.listenDomains()
+	go tun.removeExpiredMessages()
 	return tun
 }
 
@@ -96,36 +101,63 @@ func (tun *tunnel) listenDomains() {
 		case <-tun.Cancel:
 			return
 		case domain := <-tun.domains:
-			fg, err := parseDomain(tun.topDomain, domain)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
+			func() {
+				tun.fgListsLock.Lock()
+				defer tun.fgListsLock.Unlock()
 
-			if _, ok := tun.fgLists[fg.id]; !ok {
-				tun.fgLists[fg.id] = &fragmentList{
-					totalSize: 0,
-					fragments: make(map[int]fragment),
-				}
-			}
-			fgList := tun.fgLists[fg.id]
-			fgList.totalSize = fg.totalSize
-			fgList.fragments[fg.offset] = fg
-
-			totalBytes := 0
-			for _, fg := range fgList.fragments {
-				totalBytes += len(fg.data)
-			}
-
-			if totalBytes >= fgList.totalSize {
-				msg, err := fgList.assemble()
+				fg, err := parseDomain(tun.topDomain, domain)
 				if err != nil {
 					log.Println(err)
-					continue
+					return
 				}
-				tun.Messages <- msg
-				delete(tun.fgLists, fg.id)
+
+				if _, ok := tun.fgLists[fg.id]; !ok {
+					tun.fgLists[fg.id] = &fragmentList{
+						totalSize: 0,
+						fragments: make(map[int]fragment),
+						expiresAt: time.Now().Add(10 * time.Second),
+					}
+				}
+				fgList := tun.fgLists[fg.id]
+				fgList.totalSize = fg.totalSize
+				fgList.fragments[fg.offset] = fg
+				fgList.expiresAt = time.Now().Add(10 * time.Second)
+
+				totalBytes := 0
+				for _, fg := range fgList.fragments {
+					totalBytes += len(fg.data)
+				}
+
+				if totalBytes >= fgList.totalSize {
+					msg, err := fgList.assemble()
+					if err != nil {
+						log.Println(err)
+						return
+					}
+					tun.Messages <- msg
+					delete(tun.fgLists, fg.id)
+				}
+			}()
+		}
+	}
+}
+
+func (tun *tunnel) removeExpiredMessages() {
+	ticker := time.NewTicker(5 * time.Second)
+	for {
+		select {
+		case <-tun.Cancel:
+			ticker.Stop()
+			return
+		case <-ticker.C:
+			tun.fgListsLock.Lock()
+			now := time.Now()
+			for id, fgList := range tun.fgLists {
+				if fgList.expiresAt.Before(now) {
+					delete(tun.fgLists, id)
+				}
 			}
+			tun.fgListsLock.Unlock()
 		}
 	}
 }
