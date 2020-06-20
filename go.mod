@@ -1,4 +1,4 @@
-module github.com/veggiedefender/tunnel
+module github.com/veggiedefender/browsertunnel
 
 go 1.14
 
