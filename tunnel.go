@@ -81,12 +81,12 @@ func parseDomain(topDomain string, domain string) (fragment, error) {
 }
 
 func (fl fragmentList) assemble() (string, error) {
-	buf := make([]byte, fl.totalSize)
+	buf := make([]rune, fl.totalSize)
 	for _, f := range fl.fragments {
 		if f.offset >= fl.totalSize {
 			return "", fmt.Errorf("Offset %d > total size %d", f.offset, fl.totalSize)
 		}
-		copy(buf[f.offset:], []byte(f.data))
+		copy(buf[f.offset:], []rune(f.data))
 	}
 	dec, err := decoder.DecodeString(string(buf))
 	if err != nil {
