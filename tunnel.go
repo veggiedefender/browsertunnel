@@ -168,7 +168,6 @@ func (tun *tunnel) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	}
 
 	domain := r.Question[0].Name
-
 	if r.Question[0].Qtype == dns.TypeA {
 		tun.domains <- domain
 	}

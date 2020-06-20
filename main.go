@@ -26,11 +26,12 @@ func main() {
 		log.Fatal("tunnel accepts exactly one argument for the top domain")
 	}
 
+	topDomain := flag.Arg(0)
 	expirationDuration := time.Duration(*expiration) * time.Second
 	deletionIntervalDuration := time.Duration(*deletionInterval) * time.Second
 
-	tun := newTunnel(flag.Arg(0), expirationDuration, deletionIntervalDuration)
-	dns.Handle(".", tun)
+	tun := newTunnel(topDomain, expirationDuration, deletionIntervalDuration)
+	dns.Handle(topDomain, tun)
 	go listenMessages(tun.Messages)
 
 	go func() {
