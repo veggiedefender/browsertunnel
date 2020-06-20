@@ -1,13 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <title>DNS tunneling demo</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    form > * {
+      display: block;
+      margin-bottom: 1em;
+    }
+    #logs {
+      font-family: monospace;
+    }
+  </style>
 </head>
 <body>
+  <h1>DNS tunneling demo</h1>
+  <p>For source code and more information, visit <a href="https://github.com/veggiedefender/browsertunnel">https://github.com/veggiedefender/browsertunnel</a>.</p>
+  <form id='form'>
+    <label>
+      domain<br>
+      <input id="domain" type="text" placeholder="tunnel.example.com">
+    </label>
+    <label>
+      data<br>
+      <textarea id="data"></textarea>
+    </label>
+    <button>submit</button>
+  </form>
+
+  <p>Logs will appear below after making a request.</p>
+  <pre id="logs"></pre>
+
   <script src="base32.js"></script>
   <script src="tunnel.js"></script>
+
   <script>
-    
+    const $ = document.querySelector.bind(document)
+
+    function logToPage(log) {
+      const node = document.createTextNode(log + '\n')
+      $('#logs').appendChild(node)
+    }
+
+    $('form').onsubmit = async function(e) {
+      e.preventDefault()
+      const domain = $('#domain').value
+      const data = $('#data').value
+
+      const queries = encodeQueries(domain, data)
+      for (const query of queries) {
+        logToPage(`Sending DNS query for ${query}`)
+        createPrefetch(query)
+        await sleep(200)
+      }
+    }
   </script>
 </body>
 </html>
