@@ -11,7 +11,7 @@ import (
 func listenMessages(messages chan string) {
 	for {
 		msg := <-messages
-		log.Println(msg)
+		log.Println("RECEIVED MESSAGE:", msg)
 	}
 }
 
