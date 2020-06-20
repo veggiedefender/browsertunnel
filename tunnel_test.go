@@ -2,6 +2,7 @@ package main
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -130,7 +131,7 @@ func TestAssemble(t *testing.T) {
 }
 
 func TestListenDomains(t *testing.T) {
-	tun := newTunnel("tunnel.example.com.")
+	tun := newTunnel("tunnel.example.com.", 60*time.Second, 5*time.Second)
 	defer close(tun.Cancel)
 
 	tun.domains <- "i42ftq.592.218.qgm5ldnnzs4icxnbqxiidbebwws43umfvwkidun4qgqylwmuqgk5tfoiqhgyljm.qqhi2dfebuwilraiv3gk4tzo5ugk4tfebuxiidjomqg2yldnbuw4zlt4kaji4tf.mfwca33omvzsyidon52caztjm52xeylunf3gkidpnzsxgoranvqwg2djnzsxgid.eojuxm2lom4qg65dimvzca3lbmn.tunnel.example.com."

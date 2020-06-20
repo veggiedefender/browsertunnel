@@ -36,7 +36,7 @@ type fragment struct {
 	data      string
 }
 
-func newTunnel(topDomain string) *tunnel {
+func newTunnel(topDomain string, expiration time.Duration, deletionInterval time.Duration) *tunnel {
 	tun := &tunnel{
 		Messages:  make(chan string, 256),
 		Cancel:    make(chan struct{}),
@@ -44,8 +44,8 @@ func newTunnel(topDomain string) *tunnel {
 		domains:   make(chan string, 256),
 		fgLists:   make(map[string]*fragmentList),
 	}
-	go tun.listenDomains()
-	go tun.removeExpiredMessages()
+	go tun.listenDomains(expiration)
+	go tun.removeExpiredMessages(deletionInterval)
 	return tun
 }
 
@@ -95,7 +95,7 @@ func (fl fragmentList) assemble() (string, error) {
 	return string(dec), nil
 }
 
-func (tun *tunnel) listenDomains() {
+func (tun *tunnel) listenDomains(expiration time.Duration) {
 	for {
 		select {
 		case <-tun.Cancel:
@@ -115,13 +115,13 @@ func (tun *tunnel) listenDomains() {
 					tun.fgLists[fg.id] = &fragmentList{
 						totalSize: 0,
 						fragments: make(map[int]fragment),
-						expiresAt: time.Now().Add(10 * time.Second),
+						expiresAt: time.Now().Add(expiration),
 					}
 				}
 				fgList := tun.fgLists[fg.id]
 				fgList.totalSize = fg.totalSize
 				fgList.fragments[fg.offset] = fg
-				fgList.expiresAt = time.Now().Add(10 * time.Second)
+				fgList.expiresAt = time.Now().Add(expiration)
 
 				totalBytes := 0
 				for _, fg := range fgList.fragments {
@@ -142,8 +142,8 @@ func (tun *tunnel) listenDomains() {
 	}
 }
 
-func (tun *tunnel) removeExpiredMessages() {
-	ticker := time.NewTicker(5 * time.Second)
+func (tun *tunnel) removeExpiredMessages(deletionInterval time.Duration) {
+	ticker := time.NewTicker(deletionInterval)
 	for {
 		select {
 		case <-tun.Cancel:
