@@ -1,24 +1,30 @@
 # browsertunnel
+
 Browser-based DNS tunneling for surreptitious data exfiltration!
 
 ## Setup and usage
+
 First, set up DNS records to delegate a subdomain to your server. For example, if your server's IP is `192.0.2.123` and you want to tunnel through the subdomain `t1.example.com`, then your DNS configuration will look like this:
+
 ```
 t1		IN	NS	t1ns.example.com.
 t1ns		IN	A	192.0.2.123
 ```
 
 On your **server**, install browsertunnel using `go get`. Alternatively, compile browsertunnel on your own machine, and copy the binary to your server.
+
 ```
 go get github.com/veggiedefender/browsertunnel
 ```
 
 Next, run `browsertunnel`, specifying the subdomain you want to tunnel through. Remember the dot at the end of the domain!
+
 ```
 browsertunnel t1.example.com.
 ```
 
 For full usage, run `browsertunnel -help`:
+
 ```
 $ browsertunnel -help
 Usage of browsertunnel:
