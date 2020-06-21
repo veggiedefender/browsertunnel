@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/miekg/dns"
+	"github.com/veggiedefender/browsertunnel/tunnel"
 )
 
 func listenMessages(messages chan string) {
@@ -30,7 +31,7 @@ func main() {
 	expirationDuration := time.Duration(*expiration) * time.Second
 	deletionIntervalDuration := time.Duration(*deletionInterval) * time.Second
 
-	tun := newTunnel(topDomain, expirationDuration, deletionIntervalDuration)
+	tun := tunnel.NewTunnel(topDomain, expirationDuration, deletionIntervalDuration)
 	dns.Handle(topDomain, tun)
 	go listenMessages(tun.Messages)
 

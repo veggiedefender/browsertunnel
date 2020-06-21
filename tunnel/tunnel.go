@@ -1,4 +1,4 @@
-package main
+package tunnel
 
 import (
 	"encoding/base32"
@@ -14,9 +14,11 @@ import (
 
 var decoder = base32.NewEncoding("abcdefghijklmnopqrstuvwxyz234567").WithPadding('0')
 
-type tunnel struct {
+// A Tunnel listens for DNS queries. Messages that are collected and decoded are outputted through
+// the Messages channel.
+type Tunnel struct {
 	Messages    chan string
-	Cancel      chan struct{}
+	cancel      chan struct{}
 	fgLists     map[string]*fragmentList
 	fgListsLock sync.Mutex
 	topDomain   string
@@ -36,10 +38,19 @@ type fragment struct {
 	data      string
 }
 
-func newTunnel(topDomain string, expiration time.Duration, deletionInterval time.Duration) *tunnel {
-	tun := &tunnel{
+// NewTunnel creates a new tunnel and starts goroutines to manage messages.
+//
+// The expiration argument decides how long (at a minimum) a partial message is kept in memory
+// before being deleted. Updating a message resets its expiration timer.
+//
+// A goroutine running in the background periodically loops through each partial message in memory
+// and removes messages that are expired. The deletionInterval argument controls how often this loop
+// runs. Checking for expiration requires a full lock on the internal map of messages; therefore,
+// values of deletionInterval that are too frequent may hurt performance.
+func NewTunnel(topDomain string, expiration time.Duration, deletionInterval time.Duration) *Tunnel {
+	tun := &Tunnel{
 		Messages:  make(chan string, 256),
-		Cancel:    make(chan struct{}),
+		cancel:    make(chan struct{}),
 		topDomain: topDomain,
 		domains:   make(chan string, 256),
 		fgLists:   make(map[string]*fragmentList),
@@ -47,6 +58,12 @@ func newTunnel(topDomain string, expiration time.Duration, deletionInterval time
 	go tun.listenDomains(expiration)
 	go tun.removeExpiredMessages(deletionInterval)
 	return tun
+}
+
+// Close cleans up and stops the goroutines created by the tunnel. Calling Close() more than once
+// will panic.
+func (tun *Tunnel) Close() {
+	close(tun.cancel)
 }
 
 func parseDomain(topDomain string, domain string) (fragment, error) {
@@ -95,10 +112,10 @@ func (fl fragmentList) assemble() (string, error) {
 	return string(dec), nil
 }
 
-func (tun *tunnel) listenDomains(expiration time.Duration) {
+func (tun *Tunnel) listenDomains(expiration time.Duration) {
 	for {
 		select {
-		case <-tun.Cancel:
+		case <-tun.cancel:
 			return
 		case domain := <-tun.domains:
 			func() {
@@ -142,11 +159,11 @@ func (tun *tunnel) listenDomains(expiration time.Duration) {
 	}
 }
 
-func (tun *tunnel) removeExpiredMessages(deletionInterval time.Duration) {
+func (tun *Tunnel) removeExpiredMessages(deletionInterval time.Duration) {
 	ticker := time.NewTicker(deletionInterval)
 	for {
 		select {
-		case <-tun.Cancel:
+		case <-tun.cancel:
 			ticker.Stop()
 			return
 		case <-ticker.C:
@@ -162,7 +179,8 @@ func (tun *tunnel) removeExpiredMessages(deletionInterval time.Duration) {
 	}
 }
 
-func (tun *tunnel) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
+// ServeDNS handles DNS queries, records them, and replies with a CNAME to blackhole-1.iana.org.
+func (tun *Tunnel) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	if len(r.Question) < 1 {
 		return
 	}
