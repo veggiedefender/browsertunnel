@@ -27,7 +27,7 @@ func main() {
 		log.Fatal("tunnel accepts exactly one argument for the top domain")
 	}
 
-	topDomain := flag.Arg(0)
+	topDomain := dns.Fqdn(flag.Arg(0))
 	expirationDuration := time.Duration(*expiration) * time.Second
 	deletionIntervalDuration := time.Duration(*deletionInterval) * time.Second
 

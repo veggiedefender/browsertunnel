@@ -17,10 +17,10 @@ On your **server**, install browsertunnel using `go get`. Alternatively, compile
 go get github.com/veggiedefender/browsertunnel
 ```
 
-Next, run `browsertunnel`, specifying the subdomain you want to tunnel through. Remember the dot at the end of the domain!
+Next, run `browsertunnel`, specifying the subdomain you want to tunnel through.
 
 ```
-browsertunnel t1.example.com.
+browsertunnel t1.example.com
 ```
 
 For full usage, run `browsertunnel -help`:
