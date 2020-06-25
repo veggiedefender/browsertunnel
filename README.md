@@ -32,6 +32,8 @@ Usage of browsertunnel:
     	seconds in between checks for expired messages (default 5)
   -expiration int
     	seconds an incomplete message is retained before it is deleted (default 60)
+  -maxMessageSize int
+    	maximum encoded size (in bytes) of a message (default 5000)
   -port int
     	port to run on (default 53)
 ```

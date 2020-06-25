@@ -131,7 +131,7 @@ func TestAssemble(t *testing.T) {
 }
 
 func TestListenDomains(t *testing.T) {
-	tun := NewTunnel("tunnel.example.com.", 60*time.Second, 5*time.Second)
+	tun := NewTunnel("tunnel.example.com.", 60*time.Second, 5*time.Second, 5000)
 	defer tun.Close()
 
 	tun.domains <- "i42ftq.592.218.qgm5ldnnzs4icxnbqxiidbebwws43umfvwkidun4qgqylwmuqgk5tfoiqhgyljm.qqhi2dfebuwilraiv3gk4tzo5ugk4tfebuxiidjomqg2yldnbuw4zlt4kaji4tf.mfwca33omvzsyidon52caztjm52xeylunf3gkidpnzsxgoranvqwg2djnzsxgid.eojuxm2lom4qg65dimvzca3lbmn.tunnel.example.com."

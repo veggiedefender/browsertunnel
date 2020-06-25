@@ -17,12 +17,13 @@ var decoder = base32.NewEncoding("abcdefghijklmnopqrstuvwxyz234567").WithPadding
 // A Tunnel listens for DNS queries. Messages that are collected and decoded are outputted through
 // the Messages channel.
 type Tunnel struct {
-	Messages    chan string
-	cancel      chan struct{}
-	fgLists     map[string]*fragmentList
-	fgListsLock sync.Mutex
-	topDomain   string
-	domains     chan string
+	Messages       chan string
+	cancel         chan struct{}
+	fgLists        map[string]*fragmentList
+	fgListsLock    sync.Mutex
+	topDomain      string
+	domains        chan string
+	maxMessageSize int
 }
 
 type fragmentList struct {
@@ -47,13 +48,17 @@ type fragment struct {
 // and removes messages that are expired. The deletionInterval argument controls how often this loop
 // runs. Checking for expiration requires a full lock on the internal map of messages; therefore,
 // values of deletionInterval that are too frequent may hurt performance.
-func NewTunnel(topDomain string, expiration time.Duration, deletionInterval time.Duration) *Tunnel {
+//
+// The maxMessageSize argument configures the maximum size of an encoded message that the tunnel
+// will accept. Messages that declare a size greater than maxMessageSize will be discarded.
+func NewTunnel(topDomain string, expiration time.Duration, deletionInterval time.Duration, maxMessageSize int) *Tunnel {
 	tun := &Tunnel{
-		Messages:  make(chan string, 256),
-		cancel:    make(chan struct{}),
-		topDomain: topDomain,
-		domains:   make(chan string, 256),
-		fgLists:   make(map[string]*fragmentList),
+		Messages:       make(chan string, 256),
+		cancel:         make(chan struct{}),
+		topDomain:      topDomain,
+		domains:        make(chan string, 256),
+		fgLists:        make(map[string]*fragmentList),
+		maxMessageSize: maxMessageSize,
 	}
 	go tun.listenDomains(expiration)
 	go tun.removeExpiredMessages(deletionInterval)
@@ -125,6 +130,14 @@ func (tun *Tunnel) listenDomains(expiration time.Duration) {
 				fg, err := parseDomain(tun.topDomain, domain)
 				if err != nil {
 					log.Println(err)
+					return
+				}
+				if fg.totalSize <= 0 {
+					log.Printf("Received message that declares non-positive length %d.", fg.totalSize)
+					return
+				}
+				if fg.totalSize > tun.maxMessageSize {
+					log.Printf("Received message that declares length %d. Max message size is %d", fg.totalSize, tun.maxMessageSize)
 					return
 				}
 

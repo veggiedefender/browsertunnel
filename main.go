@@ -21,6 +21,7 @@ func main() {
 	port := flag.Int("port", 53, "port to run on")
 	expiration := flag.Int("expiration", 60, "seconds an incomplete message is retained before it is deleted")
 	deletionInterval := flag.Int("deletionInterval", 5, "seconds in between checks for expired messages")
+	maxMessageSize := flag.Int("maxMessageSize", 5000, "maximum encoded size (in bytes) of a message")
 	flag.Parse()
 
 	if flag.NArg() != 1 {
@@ -31,7 +32,7 @@ func main() {
 	expirationDuration := time.Duration(*expiration) * time.Second
 	deletionIntervalDuration := time.Duration(*deletionInterval) * time.Second
 
-	tun := tunnel.NewTunnel(topDomain, expirationDuration, deletionIntervalDuration)
+	tun := tunnel.NewTunnel(topDomain, expirationDuration, deletionIntervalDuration, *maxMessageSize)
 	dns.Handle(topDomain, tun)
 	go listenMessages(tun.Messages)
 
