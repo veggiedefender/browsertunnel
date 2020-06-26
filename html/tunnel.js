@@ -17,17 +17,21 @@ function encodeQueries(domain, data) {
   while (written < encoded.length) {
     const query = `${id}.${encoded.length}.${written}.${labels.join('.')}.${domain}`
     const spaceLeft = 253 - query.length
+    const unwritten = encoded.length - curr
+    const nextSize = Math.min(63, spaceLeft - 1, unwritten)
 
-    const nextSize = Math.max(0, Math.min(63, spaceLeft - 1))
-    const nextChunk = encoded.substring(curr, curr + nextSize)
-    labels.push(nextChunk)
-    if (spaceLeft === 0 || curr === encoded.length) {
+    if (spaceLeft === 0 || unwritten === 0 || nextSize === 0) {
       queries.push(query)
       labels = []
       written = curr
+      continue
     }
-    curr += nextChunk.length
+
+    const nextChunk = encoded.substring(curr, curr + nextSize)
+    labels.push(nextChunk)
+    curr += nextSize
   }
+
   return queries
 }
 
