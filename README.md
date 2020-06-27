@@ -1,6 +1,7 @@
 # browsertunnel
 
 [![](https://godoc.org/github.com/veggiedefender/browsertunnel/tunnel?status.svg)](https://godoc.org/github.com/veggiedefender/browsertunnel/tunnel)
+[![CircleCI](https://circleci.com/gh/veggiedefender/browsertunnel.svg?style=shield)](https://circleci.com/gh/veggiedefender/browsertunnel)
 
 Browsertunnel is a tool for exfiltrating data from the browser using the DNS protocol. It achieves this by abusing [`dns-prefetch`](https://developer.mozilla.org/en-US/docs/Web/Performance/dns-prefetch), a feature intended to reduce the perceived latency of websites by doing DNS lookups in the background for specified domains. DNS traffic does not appear in the browser's debugging tools, is not blocked by a page's Content Security Policy (CSP), and is often not inspected by corporate firewalls or proxies, making it an ideal medium for smuggling data in constrained scenarios.
 
