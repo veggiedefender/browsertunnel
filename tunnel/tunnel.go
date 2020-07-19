@@ -73,12 +73,12 @@ func (tun *Tunnel) Close() {
 
 func parseDomain(topDomain string, domain string) (fragment, error) {
 	if !strings.HasSuffix(domain, "."+topDomain) {
-		return fragment{}, fmt.Errorf("Domain %s does not have top domain %s", domain, topDomain)
+		return fragment{}, fmt.Errorf("Domain %q does not have top domain %q", domain, topDomain)
 	}
 	payload := strings.TrimSuffix(domain, "."+topDomain)
 	labels := strings.Split(payload, ".")
 	if len(labels) < 4 {
-		return fragment{}, fmt.Errorf("Domain has %d labels but expected at least 4", len(labels))
+		return fragment{}, fmt.Errorf("Domain %q has %d labels but expected at least 4", domain, len(labels))
 	}
 	id := labels[0]
 
