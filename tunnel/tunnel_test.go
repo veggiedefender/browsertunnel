@@ -8,13 +8,13 @@ import (
 )
 
 func TestParseDomain(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		topDomain string
 		domain    string
 		fails     bool
 		output    fragment
 	}{
-		{
+		"complete and well-formed fragment": {
 			topDomain: "tunnel.example.com.",
 			domain:    "2jkhm3.592.0.jf2ca2ltebqxiidxn5zgwidfozsxe6lxnbsxezjmebthk3tdoruw63tjnztsa43.nn5xxi2dmpeqgc5baoruw2zltfqqgc5ban52gqzlseb2gs3lfomqgs3ramzuxi4.zamfxgiidtorqxe5dtfyqes5bamjzgkylunbsxglbanf2ca2dfmf2hglbanf2ca.zlborzs4icjoqqhg2djorzsaylomq.tunnel.example.com.",
 			output: fragment{
@@ -25,22 +25,22 @@ func TestParseDomain(t *testing.T) {
 			},
 			fails: false,
 		},
-		{
+		"domain is not a subdomain of topDomain": {
 			topDomain: "tunnel.example.com.",
 			domain:    "example.com.",
 			fails:     true,
 		},
-		{
+		"length is not an integer": {
 			topDomain: "tunnel.example.com.",
 			domain:    "2jkhm3.FAIL.0.jf2ca2ltebqxiidxn5zgwidfozsxe6lxnbsxezjmebthk3tdoruw63tjnztsa43.nn5xxi2dmpeqgc5baoruw2zltfqqgc5ban52gqzlseb2gs3lfomqgs3ramzuxi4.zamfxgiidtorqxe5dtfyqes5bamjzgkylunbsxglbanf2ca2dfmf2hglbanf2ca.zlborzs4icjoqqhg2djorzsaylomq.tunnel.example.com.",
 			fails:     true,
 		},
-		{
+		"offset is not an integer": {
 			topDomain: "tunnel.example.com.",
 			domain:    "2jkhm3.592.FAIL.jf2ca2ltebqxiidxn5zgwidfozsxe6lxnbsxezjmebthk3tdoruw63tjnztsa43.nn5xxi2dmpeqgc5baoruw2zltfqqgc5ban52gqzlseb2gs3lfomqgs3ramzuxi4.zamfxgiidtorqxe5dtfyqes5bamjzgkylunbsxglbanf2ca2dfmf2hglbanf2ca.zlborzs4icjoqqhg2djorzsaylomq.tunnel.example.com.",
 			fails:     true,
 		},
-		{
+		"domain has no tunneling data": {
 			topDomain: "tunnel.example.com.",
 			domain:    "2jkhm3.592.0.tunnel.example.com.",
 			fails:     true,
@@ -58,12 +58,12 @@ func TestParseDomain(t *testing.T) {
 }
 
 func TestAssemble(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		input  fragmentList
 		output string
 		fails  bool
 	}{
-		{
+		"complete and well-formed message": {
 			input: fragmentList{
 				totalSize: 592,
 				fragments: map[int]fragment{
@@ -90,7 +90,7 @@ func TestAssemble(t *testing.T) {
 			output: "It is at work everywhere, functioning smoothly at times, at other times in fits and starts. It breathes, it heats, it eats. It shits and fucks. What a mistake to have ever said the id. Everywhere it is machines—real ones, not figurative ones: machines driving other machines, machines being driven by other machines, with all the necessary couplings and connections.",
 			fails:  false,
 		},
-		{
+		"offset > totalSize": {
 			input: fragmentList{
 				totalSize: 10,
 				fragments: map[int]fragment{
@@ -104,7 +104,7 @@ func TestAssemble(t *testing.T) {
 			},
 			fails: true,
 		},
-		{
+		"data is not base32 encoded": {
 			input: fragmentList{
 				totalSize: 10,
 				fragments: map[int]fragment{
